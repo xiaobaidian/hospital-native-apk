@@ -51,7 +51,6 @@ class MainActivity : AppCompatActivity() {
     private var previewPos = -1
     /** 水印烧录较重，放到后台线程执行，避免快门卡顿 */
     private val workExecutor = Executors.newSingleThreadExecutor()
-    private val mainExecutor by lazy { ContextCompat.getMainExecutor(this) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -181,7 +180,7 @@ class MainActivity : AppCompatActivity() {
         val raw = File(saveDir, "raw_${System.currentTimeMillis()}.jpg")
         val opts = ImageCapture.OutputFileOptions.Builder(raw).build()
         // 回调跑在主线程：立刻给快门反馈，重的水印烧录丢到后台，避免卡顿
-        imageCapture.takePicture(opts, mainExecutor,
+        imageCapture.takePicture(opts, ContextCompat.getMainExecutor(this),
             object : ImageCapture.OnImageSavedCallback {
                 override fun onError(exc: ImageCaptureException) {
                     Toast.makeText(this@MainActivity, "拍照失败：${exc.message}", Toast.LENGTH_SHORT).show()
