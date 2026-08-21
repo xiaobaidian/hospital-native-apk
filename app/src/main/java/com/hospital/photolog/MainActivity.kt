@@ -13,6 +13,8 @@ import android.os.Environment
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.provider.Settings
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.KeyEvent
 import android.view.View
 import android.annotation.SuppressLint
@@ -75,9 +77,26 @@ class MainActivity : AppCompatActivity() {
             LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         binding.recyclerThumbs.adapter = adapter
 
-        // 数量步进（底部，拇指可达）；修复：同步刷新大号数字
-        binding.btnQtyMinus.setOnClickListener { if (quantity > 1) { quantity--; updateLive() } }
-        binding.btnQtyPlus.setOnClickListener { if (quantity < 999) { quantity++; updateLive() } }
+        // 数量：手动输入 + 步进 + 预设（1/5/10/20/50）
+        binding.btnQtyMinus.setOnClickListener { if (quantity > 1) setQuantity(quantity - 1) }
+        binding.btnQtyPlus.setOnClickListener { if (quantity < 999) setQuantity(quantity + 1) }
+        binding.btnPreset1.setOnClickListener { setQuantity(1) }
+        binding.btnPreset5.setOnClickListener { setQuantity(5) }
+        binding.btnPreset10.setOnClickListener { setQuantity(10) }
+        binding.btnPreset20.setOnClickListener { setQuantity(20) }
+        binding.btnPreset50.setOnClickListener { setQuantity(50) }
+        binding.etQty.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+                val v = s?.toString()?.toIntOrNull()
+                if (v != null && v in 1..999 && v != quantity) {
+                    quantity = v
+                    updateHud()
+                }
+            }
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        })
+        binding.etQty.setOnFocusChangeListener { _, hasFocus -> if (!hasFocus) setQuantity(quantity) }
 
         // 快门 / 分享 / 保存并清空缓存 / 打开下载文件夹
         binding.fabShutter.setOnClickListener { takePhoto() }
@@ -92,14 +111,23 @@ class MainActivity : AppCompatActivity() {
             binding.previewOverlay.visibility = View.GONE
         }
 
-        updateLive()
+        updateHud()
         loadExistingPhotos()
         ensureCameraPermission()
     }
 
-    /** 同步刷新：底部大号数字 + 左上角仿水印的数量/时间标注 */
-    private fun updateLive() {
-        binding.tvQty.text = quantity.toString()
+    /** 设置数量：钳制到 1..999，同步输入框与左上角仿水印标注 */
+    private fun setQuantity(v: Int) {
+        quantity = v.coerceIn(1, 999)
+        if (binding.etQty.text.toString().toIntOrNull() != quantity) {
+            binding.etQty.setText(quantity.toString())
+            binding.etQty.setSelection(binding.etQty.text.length)
+        }
+        updateHud()
+    }
+
+    /** 左上角仿水印的数量/时间标注（与烧录内容一致） */
+    private fun updateHud() {
         val now = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.CHINA).format(Date())
         binding.tvHudQty.text = "数量：$quantity"
         binding.tvHudTime.text = "时间：$now"
@@ -338,23 +366,30 @@ class MainActivity : AppCompatActivity() {
         ).show()
     }
 
-    /** 打开系统文件管理器并跳到「下载 / HospitalPhotoLog」；各厂商文件管理器兼容不一，失败则回退到系统「下载」 */
+    /** 打开文件管理器跳到「下载 / HospitalPhotoLog」：依次尝试 子文件夹→下载根→系统「下载」 */
     private fun openDownloads() {
-        val folderUri = Uri.parse(
-            "content://com.android.externalstorage.documents/document/primary:Download/HospitalPhotoLog"
-        )
-        val intent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(folderUri, "vnd.android.document/directory")
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
+        if (openFolder("primary:Download/HospitalPhotoLog")) return
+        if (openFolder("primary:Download")) return
         try {
-            startActivity(intent)
+            startActivity(Intent(DownloadManager.ACTION_VIEW_DOWNLOADS))
         } catch (e: Exception) {
-            try {
-                startActivity(Intent(DownloadManager.ACTION_VIEW_DOWNLOADS))
-            } catch (e2: Exception) {
-                Toast.makeText(this, "未找到可用的文件管理器", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "请打开文件管理器，进入 下载/HospitalPhotoLog", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    /** 用 DocumentsUI 打开指定目录；无应用能处理或打开失败则返回 false */
+    private fun openFolder(documentId: String): Boolean {
+        return try {
+            val uri = Uri.parse("content://com.android.externalstorage.documents/document/$documentId")
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, "vnd.android.document/directory")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
+            if (intent.resolveActivity(packageManager) == null) return false
+            startActivity(intent)
+            true
+        } catch (e: Exception) {
+            false
         }
     }
 

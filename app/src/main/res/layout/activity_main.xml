@@ -94,62 +94,137 @@
         android:paddingBottom="22dp"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <!-- 数量步进（圆形图标按钮 + 大号数字，拇指可达） -->
+        <!-- 数量：手动输入 + 步进 + 预设（拇指可达） -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="14dp">
+            android:orientation="vertical">
 
-            <TextView
-                android:layout_width="wrap_content"
+            <!-- 步进行：- 输入框 + -->
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="数量"
-                android:textColor="@color/on_surface"
-                android:textSize="16sp"
-                android:layout_marginEnd="14dp" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
 
-            <ImageButton
-                android:id="@+id/btnQtyMinus"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:background="@drawable/bg_circle_button"
-                android:src="@drawable/ic_minus"
-                android:tint="@color/on_surface"
-                android:scaleType="centerInside"
-                android:padding="13dp"
-                android:contentDescription="减少数量" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="数量"
+                    android:textColor="@color/on_surface"
+                    android:textSize="16sp"
+                    android:layout_marginEnd="14dp" />
 
-            <TextView
-                android:id="@+id/tvQty"
-                android:layout_width="64dp"
+                <ImageButton
+                    android:id="@+id/btnQtyMinus"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="@drawable/bg_circle_button"
+                    android:src="@drawable/ic_minus"
+                    android:tint="@color/on_surface"
+                    android:scaleType="centerInside"
+                    android:padding="13dp"
+                    android:contentDescription="减少数量" />
+
+                <EditText
+                    android:id="@+id/etQty"
+                    android:layout_width="72dp"
+                    android:layout_height="48dp"
+                    android:gravity="center"
+                    android:inputType="number"
+                    android:maxLength="3"
+                    android:imeOptions="actionDone"
+                    android:selectAllOnFocus="true"
+                    android:importantForAutofill="no"
+                    android:background="@drawable/bg_qty_input"
+                    android:text="1"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/on_surface"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp" />
+
+                <ImageButton
+                    android:id="@+id/btnQtyPlus"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="@drawable/bg_circle_button"
+                    android:src="@drawable/ic_plus"
+                    android:tint="@color/on_surface"
+                    android:scaleType="centerInside"
+                    android:padding="13dp"
+                    android:contentDescription="增加数量" />
+            </LinearLayout>
+
+            <!-- 预设值（1-50） -->
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center"
-                android:text="1"
-                android:textSize="24sp"
-                android:textStyle="bold"
-                android:textColor="@color/on_surface" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="10dp">
 
-            <ImageButton
-                android:id="@+id/btnQtyPlus"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:background="@drawable/bg_circle_button"
-                android:src="@drawable/ic_plus"
-                android:tint="@color/on_surface"
-                android:scaleType="centerInside"
-                android:padding="13dp"
-                android:contentDescription="增加数量" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="预设"
+                    android:textColor="@color/on_surface_variant"
+                    android:textSize="13sp"
+                    android:layout_marginEnd="10dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnPreset1"
+                    style="@style/PresetButton"
+                    android:layout_width="0dp"
+                    android:layout_height="38dp"
+                    android:layout_weight="1"
+                    android:text="1"
+                    android:layout_marginEnd="6dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnPreset5"
+                    style="@style/PresetButton"
+                    android:layout_width="0dp"
+                    android:layout_height="38dp"
+                    android:layout_weight="1"
+                    android:text="5"
+                    android:layout_marginEnd="6dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnPreset10"
+                    style="@style/PresetButton"
+                    android:layout_width="0dp"
+                    android:layout_height="38dp"
+                    android:layout_weight="1"
+                    android:text="10"
+                    android:layout_marginEnd="6dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnPreset20"
+                    style="@style/PresetButton"
+                    android:layout_width="0dp"
+                    android:layout_height="38dp"
+                    android:layout_weight="1"
+                    android:text="20"
+                    android:layout_marginEnd="6dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnPreset50"
+                    style="@style/PresetButton"
+                    android:layout_width="0dp"
+                    android:layout_height="38dp"
+                    android:layout_weight="1"
+                    android:text="50" />
+            </LinearLayout>
         </LinearLayout>
 
-        <!-- 操作行 -->
+        <!-- 操作行（快门上移、居中凸出） -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center"
-            android:paddingTop="4dp">
+            android:layout_marginTop="30dp">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnShare"
@@ -157,19 +232,22 @@
                 android:layout_width="0dp"
                 android:layout_height="52dp"
                 android:layout_weight="1"
-                android:text="分享微信"
+                android:text="分享"
+                android:maxLines="1"
                 app:icon="@drawable/ic_share"
                 app:iconTint="@color/on_primary"
                 app:iconGravity="textStart"
+                app:iconPadding="6dp"
                 android:layout_marginEnd="12dp" />
 
-            <!-- 圆形快门按钮（白底 + 主色圆环） -->
+            <!-- 圆形快门按钮（白底 + 主色圆环，上移凸出） -->
             <ImageButton
                 android:id="@+id/fabShutter"
                 android:layout_width="88dp"
                 android:layout_height="88dp"
                 android:background="@drawable/bg_shutter_button"
                 android:elevation="8dp"
+                android:translationY="-22dp"
                 android:contentDescription="拍照" />
 
             <com.google.android.material.button.MaterialButton
@@ -182,6 +260,7 @@
                 app:icon="@drawable/ic_download"
                 app:iconTint="@color/on_primary"
                 app:iconGravity="textStart"
+                app:iconPadding="6dp"
                 android:layout_marginStart="12dp" />
         </LinearLayout>
     </LinearLayout>
