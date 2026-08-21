@@ -12,6 +12,7 @@ import android.os.Bundle
 import android.os.Environment
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.provider.Settings
 import android.view.KeyEvent
 import android.view.View
 import android.annotation.SuppressLint
@@ -22,6 +23,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.view.WindowCompat
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.hospital.photolog.databinding.ActivityMainBinding
 import android.content.ContentValues
 import android.provider.MediaStore
@@ -127,13 +129,65 @@ class MainActivity : AppCompatActivity() {
         adapter.notifyDataSetChanged()
     }
 
+    /** 相机权限检测：未授权则弹框说明，引导授权 */
     private fun ensureCameraPermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
-            == PackageManager.PERMISSION_GRANTED
-        ) {
+        if (hasCameraPermission()) {
             startCamera()
         } else {
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), 1001)
+            showCameraRequestDialog()
+        }
+    }
+
+    private fun hasCameraPermission(): Boolean =
+        ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+            == PackageManager.PERMISSION_GRANTED
+
+    /** 未授权时先弹自定义说明框，点「授权」再调系统权限请求 */
+    private fun showCameraRequestDialog() {
+        MaterialAlertDialogBuilder(this)
+            .setTitle("需要相机权限")
+            .setMessage("拍照需要访问相机，请允许授权后使用。")
+            .setCancelable(false)
+            .setPositiveButton("授权") { _, _ -> requestCamera() }
+            .setNegativeButton("暂不", null)
+            .show()
+    }
+
+    private fun requestCamera() {
+        ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), 1001)
+    }
+
+    /** 授权被拒后的弹框：可再请求则重试；已勾选「不再询问」则引导去系统设置 */
+    private fun showCameraDeniedDialog() {
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA)) {
+            MaterialAlertDialogBuilder(this)
+                .setTitle("需要相机权限")
+                .setMessage("未授权将无法拍照，是否重新授权？")
+                .setCancelable(false)
+                .setPositiveButton("重试") { _, _ -> requestCamera() }
+                .setNegativeButton("取消", null)
+                .show()
+        } else {
+            MaterialAlertDialogBuilder(this)
+                .setTitle("相机权限已关闭")
+                .setMessage("请在系统设置中开启相机权限后重试。")
+                .setCancelable(false)
+                .setPositiveButton("去设置") { _, _ -> openAppSettings() }
+                .setNegativeButton("取消", null)
+                .show()
+        }
+    }
+
+    private fun openAppSettings() {
+        try {
+            startActivity(
+                Intent(
+                    Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                    Uri.fromParts("package", packageName, null)
+                )
+            )
+        } catch (e: Exception) {
+            startActivity(Intent(Settings.ACTION_SETTINGS))
         }
     }
 
@@ -143,12 +197,14 @@ class MainActivity : AppCompatActivity() {
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == 1001 && grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED) {
-            startCamera()
+        if (requestCode == 1001) {
+            if (grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED) {
+                startCamera()
+            } else {
+                showCameraDeniedDialog()
+            }
         } else if (requestCode == 1002) {
-            // 老版本存储权限（仅 Android 9 及以下会请求）；授权后用户可点「存到下载」重试
-        } else {
-            Toast.makeText(this, "需要相机权限才能拍照", Toast.LENGTH_LONG).show()
+            // 老版本存储权限（仅 Android 9 及以下会请求）；授权后用户可点「保存」重试
         }
     }
 

@@ -1,21 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- 品牌主色（Material Blue） -->
-    <color name="primary">#1E88E5</color>
-    <color name="primary_dark">#1565C0</color>
+    <!-- 单一强调色：青绿（临床/器械感，区别于默认蓝） -->
+    <color name="primary">#2DD4BF</color>
+    <color name="on_primary">#042A2C</color>
+    <color name="primary_dark">#0D9488</color>
     <color name="white">#FFFFFFFF</color>
     <color name="black">#FF000000</color>
 
-    <!-- Material 3 暗色协调色板 -->
-    <color name="bg">#0E1116</color>              <!-- 屏幕背景 -->
-    <color name="surface">#161B22</color>         <!-- 底部面板 / 悬浮 sheet -->
-    <color name="surface_variant">#232A33</color> <!-- 次级按钮底色 -->
-    <color name="on_surface">#E7ECF2</color>      <!-- 主文字 -->
-    <color name="on_surface_variant">#9AA7B4</color>
+    <!-- Material 3 暗色协调色板（深石板调） -->
+    <color name="bg">#0A0D12</color>              <!-- 屏幕背景 -->
+    <color name="surface">#12171F</color>         <!-- 底部面板 / 悬浮 sheet -->
+    <color name="surface_variant">#1E2631</color> <!-- 次级按钮底色 -->
+    <color name="on_surface">#E7EDF4</color>      <!-- 主文字 -->
+    <color name="on_surface_variant">#8B98A6</color>
     <color name="scrim">#59000000</color>
-    <color name="strip_bg">#B30E1116</color>      <!-- 缩略图条 -->
-    <color name="danger">#E5534B</color>          <!-- 删除/错误 -->
+    <color name="strip_bg">#B30A0D12</color>      <!-- 缩略图条 -->
+    <color name="danger">#EF4444</color>          <!-- 删除/错误 -->
 
     <!-- 启动图标背景 -->
-    <color name="ic_bg">#1E88E5</color>
+    <color name="ic_bg">#0D9488</color>
 </resources>

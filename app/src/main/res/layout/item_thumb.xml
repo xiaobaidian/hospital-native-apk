@@ -20,7 +20,7 @@
         android:layout_gravity="top|end"
         android:layout_margin="2dp"
         android:background="@drawable/bg_circle_dark"
-        android:src="@android:drawable/ic_menu_close_clear_cancel"
+        android:src="@drawable/ic_close"
         android:tint="@color/white"
         android:contentDescription="删除" />
 </FrameLayout>

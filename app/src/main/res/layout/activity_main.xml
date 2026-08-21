@@ -158,6 +158,9 @@
                 android:layout_height="52dp"
                 android:layout_weight="1"
                 android:text="分享微信"
+                app:icon="@drawable/ic_share"
+                app:iconTint="@color/on_primary"
+                app:iconGravity="textStart"
                 android:layout_marginEnd="12dp" />
 
             <!-- 圆形快门按钮（白底 + 主色圆环） -->
@@ -176,6 +179,9 @@
                 android:layout_height="52dp"
                 android:layout_weight="1"
                 android:text="保存"
+                app:icon="@drawable/ic_download"
+                app:iconTint="@color/on_primary"
+                app:iconGravity="textStart"
                 android:layout_marginStart="12dp" />
         </LinearLayout>
     </LinearLayout>
@@ -202,7 +208,7 @@
             android:layout_gravity="top|end"
             android:layout_margin="16dp"
             android:background="@drawable/bg_circle_dark"
-            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            android:src="@drawable/ic_close"
             android:tint="@color/white"
             android:contentDescription="关闭预览" />
 
@@ -213,6 +219,9 @@
             android:layout_gravity="bottom|center_horizontal"
             android:layout_marginBottom="28dp"
             android:text="删除这张"
+            app:icon="@drawable/ic_delete"
+            app:iconTint="@color/white"
+            app:iconGravity="textStart"
             app:backgroundTint="@color/danger" />
     </FrameLayout>
 
