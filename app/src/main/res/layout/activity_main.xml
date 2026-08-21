@@ -167,12 +167,12 @@
                 app:elevation="6dp" />
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnZip"
+                android:id="@+id/btnSave"
                 style="@style/ActionButton"
                 android:layout_width="0dp"
                 android:layout_height="52dp"
                 android:layout_weight="1"
-                android:text="打包ZIP"
+                android:text="存到下载"
                 android:layout_marginStart="10dp" />
         </LinearLayout>
     </LinearLayout>

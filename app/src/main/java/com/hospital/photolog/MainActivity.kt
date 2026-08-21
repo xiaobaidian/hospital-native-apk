@@ -13,6 +13,7 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.view.KeyEvent
 import android.view.View
+import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -21,9 +22,9 @@ import androidx.core.content.FileProvider
 import androidx.core.view.WindowCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.hospital.photolog.databinding.ActivityMainBinding
-import java.io.BufferedOutputStream
+import android.content.ContentValues
+import android.provider.MediaStore
 import java.io.File
-import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.ArrayList
 import java.util.Date
@@ -45,6 +46,8 @@ class MainActivity : AppCompatActivity() {
     private val saveDir by lazy {
         File(getExternalFilesDir(Environment.DIRECTORY_PICTURES), "hospital")
     }
+    /** 写入手机「下载」目录下的独立文件夹（用户可在文件管理器/微信里直接找到） */
+    private val DOWNLOAD_FOLDER = "HospitalPhotoLog"
     private var previewPos = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -76,10 +79,10 @@ class MainActivity : AppCompatActivity() {
         binding.btnQtyMinus.setOnClickListener { if (quantity > 1) { quantity--; updateLive() } }
         binding.btnQtyPlus.setOnClickListener { if (quantity < 999) { quantity++; updateLive() } }
 
-        // 快门 / 分享 / 打包
+        // 快门 / 分享 / 存到下载
         binding.fabShutter.setOnClickListener { takePhoto() }
         binding.btnShare.setOnClickListener { shareToWeChat() }
-        binding.btnZip.setOnClickListener { exportZip() }
+        binding.btnSave.setOnClickListener { exportToDownload() }
 
         // 全屏预览：关闭 / 删除
         binding.btnClosePreview.setOnClickListener { binding.previewOverlay.visibility = View.GONE }
@@ -152,8 +155,8 @@ class MainActivity : AppCompatActivity() {
     /** 启动时把磁盘上已有的照片载入列表（切应用/重开不丢） */
     private fun loadExistingPhotos() {
         saveDir.mkdirs()
-        val files = saveDir.listFiles { f -> f.name.startsWith("wm_") && f.name.endsWith(".jpg") }
-        files?.sortedByDescending { it.name }?.forEach { photos.add(PhotoItem(it, "")) }
+        val files = saveDir.listFiles { f -> f.name.endsWith(".jpg") && !f.name.startsWith("raw_") }
+        files?.sortedByDescending { it.name }?.forEach { photos.add(PhotoItem(it, "", "盘库", 1, it.name)) }
         adapter.notifyDataSetChanged()
     }
 
@@ -175,6 +178,8 @@ class MainActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == 1001 && grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED) {
             startCamera()
+        } else if (requestCode == 1002) {
+            // 老版本存储权限（仅 Android 9 及以下会请求）；授权后用户可点「存到下载」重试
         } else {
             Toast.makeText(this, "需要相机权限才能拍照", Toast.LENGTH_LONG).show()
         }
@@ -218,12 +223,18 @@ class MainActivity : AppCompatActivity() {
 
                 override fun onImageSaved(result: ImageCapture.OutputFileResults) {
                     val time = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.CHINA).format(Date())
-                    val wm = Watermark.burn(raw, quantity, scene, time)
+                    val name = makeDownloadName(scene, quantity)
+                    val wm = Watermark.burn(raw, quantity, time, name)
                     raw.delete()
-                    photos.add(0, PhotoItem(wm, time))
+                    val item = PhotoItem(wm, time, scene, quantity, name)
+                    photos.add(0, item)
                     adapter.notifyItemInserted(0)
                     binding.recyclerThumbs.scrollToPosition(0)
                     onCapturedFeedback()
+                    // 自动存一份到手机「下载 / HospitalPhotoLog」，无需手动打包
+                    if (!saveToDownload(wm, name)) {
+                        Toast.makeText(this@MainActivity, "自动存入下载失败，可点「存到下载」重试", Toast.LENGTH_SHORT).show()
+                    }
                 }
             })
     }
@@ -279,36 +290,101 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun exportZip() {
+    /** 把当前所有照片导出到「下载 / HospitalPhotoLog」（去重：已存在则跳过） */
+    private fun exportToDownload() {
         if (photos.isEmpty()) {
             Toast.makeText(this, "还没有照片", Toast.LENGTH_SHORT).show()
             return
         }
-        val dir = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS) ?: cacheDir
-        val zipFile = File(
-            dir,
-            "医院盘库_${SimpleDateFormat("yyyyMMdd_HHmm", Locale.CHINA).format(Date())}.zip"
-        )
-        try {
-            val zos = java.util.zip.ZipOutputStream(BufferedOutputStream(FileOutputStream(zipFile)))
-            zos.use {
-                photos.forEach { p ->
-                    zos.putNextEntry(java.util.zip.ZipEntry(p.file.name))
-                    p.file.inputStream().use { src -> src.copyTo(zos) }
-                    zos.closeEntry()
-                }
-            }
+        var ok = 0
+        photos.forEach { item ->
+            val name = item.downloadName ?: makeDownloadName(item.scene, item.quantity)
+            if (saveToDownload(item.file, name)) ok++
+        }
+        Toast.makeText(
+            this,
+            "已保存 $ok 张到 下载/$DOWNLOAD_FOLDER",
+            Toast.LENGTH_LONG
+        ).show()
+    }
+
+    /** 写一张图到「下载 / HospitalPhotoLog」：Android 10+ 走 MediaStore，老版本走文件兼容 */
+    private fun saveToDownload(src: File, displayName: String): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            saveViaMediaStore(src, displayName)
+        } else {
+            saveViaLegacyFile(src, displayName)
+        }
+    }
+
+    @SuppressLint("NewApi")
+    private fun saveViaMediaStore(src: File, displayName: String): Boolean {
+        val resolver = contentResolver
+        val folder = Environment.DIRECTORY_DOWNLOADS + File.separator + DOWNLOAD_FOLDER
+        if (downloadEntryExists(displayName, folder)) return true
+        val values = ContentValues().apply {
+            put(MediaStore.MediaColumns.DISPLAY_NAME, displayName)
+            put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
+            put(MediaStore.MediaColumns.RELATIVE_PATH, folder)
+            put(MediaStore.MediaColumns.IS_PENDING, 1)
+        }
+        val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values) ?: return false
+        return try {
+            resolver.openOutputStream(uri)?.use { out ->
+                src.inputStream().use { it.copyTo(out) }
+            } ?: throw RuntimeException("openOutputStream null")
+            values.clear()
+            values.put(MediaStore.MediaColumns.IS_PENDING, 0)
+            resolver.update(uri, values, null, null)
+            true
         } catch (e: Exception) {
-            Toast.makeText(this, "打包失败：${e.message}", Toast.LENGTH_SHORT).show()
-            return
+            runCatching { resolver.delete(uri, null, null) }
+            false
         }
-        val uri = FileProvider.getUriForFile(this, "$packageName.fileprovider", zipFile)
-        val intent = Intent(Intent.ACTION_SEND).apply {
-            type = "application/zip"
-            putExtra(Intent.EXTRA_STREAM, uri)
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+    }
+
+    @SuppressLint("NewApi")
+    private fun downloadEntryExists(name: String, folder: String): Boolean {
+        val projection = arrayOf(MediaStore.MediaColumns._ID)
+        val sel = "${MediaStore.MediaColumns.DISPLAY_NAME}=? AND ${MediaStore.MediaColumns.RELATIVE_PATH}=?"
+        val args = arrayOf(name, folder)
+        contentResolver.query(
+            MediaStore.Downloads.EXTERNAL_CONTENT_URI, projection, sel, args, null
+        )?.use { c -> return c.count > 0 }
+        return false
+    }
+
+    /** 仅 Android 9 及以下会走到：需要 WRITE_EXTERNAL_STORAGE */
+    private fun saveViaLegacyFile(src: File, displayName: String): Boolean {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                this, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), 1002
+            )
+            return false
         }
-        startActivity(Intent.createChooser(intent, "导出ZIP（可发微信/存网盘）"))
+        val dir = File(
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+            DOWNLOAD_FOLDER
+        )
+        if (!dir.exists() && !dir.mkdirs()) return false
+        val dst = File(dir, displayName)
+        if (dst.exists()) return true
+        return try {
+            src.inputStream().use { inp -> dst.outputStream().use { inp.copyTo(it) } }
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    /** 下载目录里的文件名：场景_时间_数量.jpg（唯一，便于去重与人工辨认） */
+    private fun makeDownloadName(scene: String, quantity: Int): String {
+        val ts = System.currentTimeMillis()
+        val tf = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.CHINA).format(Date(ts))
+        val uniq = ts % 1000
+        return "${scene}_${tf}${String.format("%03d", uniq)}_数量${quantity}.jpg"
     }
 
     /** 音量键当快门（现场戴手套/拿货时比戳屏幕顺手） */
