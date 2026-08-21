@@ -1,6 +1,7 @@
 package com.hospital.photolog
 
 import android.Manifest
+import android.app.DownloadManager
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
@@ -293,7 +294,7 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         } catch (e: Exception) {
             try {
-                startActivity(Intent(Intent.ACTION_VIEW_DOWNLOADS))
+                startActivity(Intent(DownloadManager.ACTION_VIEW_DOWNLOADS))
             } catch (e2: Exception) {
                 Toast.makeText(this, "未找到可用的文件管理器", Toast.LENGTH_SHORT).show()
             }
