@@ -9,8 +9,8 @@ android {
         applicationId 'com.hospital.photolog'
         minSdk 26
         targetSdk 36
-        versionCode 8
-        versionName '1.6-native'
+        versionCode 9
+        versionName '1.7-native'
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
 

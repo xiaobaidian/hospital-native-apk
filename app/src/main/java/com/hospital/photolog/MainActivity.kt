@@ -147,6 +147,12 @@ class MainActivity : AppCompatActivity() {
         photos.removeAt(pos)
         adapter.notifyItemRemoved(pos)
         adapter.notifyItemRangeChanged(pos, photos.size)
+        updateThumbsVisibility()
+    }
+
+    /** 无照片时隐藏缩略图条（避免出现一条无用的半透明黑条） */
+    private fun updateThumbsVisibility() {
+        binding.recyclerThumbs.visibility = if (photos.isEmpty()) View.GONE else View.VISIBLE
     }
 
     /** 启动时把磁盘上已有的照片载入列表（切应用/重开不丢） */
@@ -155,6 +161,7 @@ class MainActivity : AppCompatActivity() {
         val files = saveDir.listFiles { f -> f.name.endsWith(".jpg") && !f.name.startsWith("raw_") }
         files?.sortedByDescending { it.name }?.forEach { photos.add(PhotoItem(it, "", 1, it.name)) }
         adapter.notifyDataSetChanged()
+        updateThumbsVisibility()
     }
 
     /** 相机权限检测：未授权则弹框说明，引导授权 */
@@ -287,6 +294,7 @@ class MainActivity : AppCompatActivity() {
                             photos.add(0, item)
                             adapter.notifyItemInserted(0)
                             binding.recyclerThumbs.scrollToPosition(0)
+                            updateThumbsVisibility()
                         }
                     }
                 }
@@ -359,6 +367,7 @@ class MainActivity : AppCompatActivity() {
         photos.forEach { it.file.delete() }
         photos.clear()
         adapter.notifyDataSetChanged()
+        updateThumbsVisibility()
         Toast.makeText(
             this,
             "已保存 $ok 张到 下载/$DOWNLOAD_FOLDER，缓存已清空",

@@ -11,15 +11,21 @@
         <item name="android:textColor">@color/on_primary</item>
     </style>
 
-    <!-- 数量预设胶囊按钮（1/5/10/20/50） -->
+    <!-- 数量预设胶囊按钮（1/5/10/20/50）：小字、半透明、单行不换行 -->
     <style name="PresetButton" parent="Widget.Material3.Button">
-        <item name="android:textSize">14sp</item>
+        <item name="android:textSize">12sp</item>
         <item name="android:textAllCaps">false</item>
-        <item name="cornerRadius">18dp</item>
+        <item name="cornerRadius">16dp</item>
         <item name="android:minWidth">0dp</item>
+        <item name="android:insetLeft">0dp</item>
+        <item name="android:insetRight">0dp</item>
         <item name="android:insetTop">0dp</item>
         <item name="android:insetBottom">0dp</item>
-        <item name="android:backgroundTint">@color/surface_variant</item>
+        <item name="android:paddingStart">0dp</item>
+        <item name="android:paddingEnd">0dp</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:backgroundTint">@color/preset_bg</item>
         <item name="android:textColor">@color/on_surface</item>
     </style>
 </resources>

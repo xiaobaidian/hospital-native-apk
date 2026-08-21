@@ -13,6 +13,7 @@
     <color name="surface_variant">#1E2631</color> <!-- 次级按钮底色 -->
     <color name="on_surface">#E7EDF4</color>      <!-- 主文字 -->
     <color name="on_surface_variant">#8B98A6</color>
+    <color name="preset_bg">#33FFFFFF</color>     <!-- 预设胶囊半透明底 -->
     <color name="scrim">#59000000</color>
     <color name="strip_bg">#B30A0D12</color>      <!-- 缩略图条 -->
     <color name="danger">#EF4444</color>          <!-- 删除/错误 -->

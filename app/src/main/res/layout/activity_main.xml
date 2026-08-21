@@ -156,75 +156,66 @@
                     android:contentDescription="增加数量" />
             </LinearLayout>
 
-            <!-- 预设值（1-50） -->
+            <!-- 预设值（半透明胶囊，单行小字） -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginTop="10dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="预设"
-                    android:textColor="@color/on_surface_variant"
-                    android:textSize="13sp"
-                    android:layout_marginEnd="10dp" />
+                android:layout_marginTop="8dp">
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnPreset1"
                     style="@style/PresetButton"
                     android:layout_width="0dp"
-                    android:layout_height="38dp"
+                    android:layout_height="32dp"
                     android:layout_weight="1"
                     android:text="1"
-                    android:layout_marginEnd="6dp" />
+                    android:layout_marginEnd="4dp" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnPreset5"
                     style="@style/PresetButton"
                     android:layout_width="0dp"
-                    android:layout_height="38dp"
+                    android:layout_height="32dp"
                     android:layout_weight="1"
                     android:text="5"
-                    android:layout_marginEnd="6dp" />
+                    android:layout_marginEnd="4dp" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnPreset10"
                     style="@style/PresetButton"
                     android:layout_width="0dp"
-                    android:layout_height="38dp"
+                    android:layout_height="32dp"
                     android:layout_weight="1"
                     android:text="10"
-                    android:layout_marginEnd="6dp" />
+                    android:layout_marginEnd="4dp" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnPreset20"
                     style="@style/PresetButton"
                     android:layout_width="0dp"
-                    android:layout_height="38dp"
+                    android:layout_height="32dp"
                     android:layout_weight="1"
                     android:text="20"
-                    android:layout_marginEnd="6dp" />
+                    android:layout_marginEnd="4dp" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnPreset50"
                     style="@style/PresetButton"
                     android:layout_width="0dp"
-                    android:layout_height="38dp"
+                    android:layout_height="32dp"
                     android:layout_weight="1"
                     android:text="50" />
             </LinearLayout>
         </LinearLayout>
 
-        <!-- 操作行（快门上移、居中凸出） -->
+        <!-- 操作行（快门居中上浮、分享/保存贴底） -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:gravity="center"
-            android:layout_marginTop="30dp">
+            android:gravity="center_vertical"
+            android:layout_marginTop="14dp">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnShare"
@@ -232,22 +223,23 @@
                 android:layout_width="0dp"
                 android:layout_height="52dp"
                 android:layout_weight="1"
+                android:layout_gravity="bottom"
                 android:text="分享"
                 android:maxLines="1"
                 app:icon="@drawable/ic_share"
                 app:iconTint="@color/on_primary"
                 app:iconGravity="textStart"
                 app:iconPadding="6dp"
-                android:layout_marginEnd="12dp" />
+                android:layout_marginEnd="12dp"
+                android:layout_marginBottom="4dp" />
 
-            <!-- 圆形快门按钮（白底 + 主色圆环，上移凸出） -->
+            <!-- 圆形快门按钮（白底 + 主色圆环） -->
             <ImageButton
                 android:id="@+id/fabShutter"
                 android:layout_width="88dp"
                 android:layout_height="88dp"
                 android:background="@drawable/bg_shutter_button"
                 android:elevation="8dp"
-                android:translationY="-22dp"
                 android:contentDescription="拍照" />
 
             <com.google.android.material.button.MaterialButton
@@ -256,12 +248,14 @@
                 android:layout_width="0dp"
                 android:layout_height="52dp"
                 android:layout_weight="1"
+                android:layout_gravity="bottom"
                 android:text="保存"
                 app:icon="@drawable/ic_download"
                 app:iconTint="@color/on_primary"
                 app:iconGravity="textStart"
                 app:iconPadding="6dp"
-                android:layout_marginStart="12dp" />
+                android:layout_marginStart="12dp"
+                android:layout_marginBottom="4dp" />
         </LinearLayout>
     </LinearLayout>
 
