@@ -139,8 +139,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun hasCameraPermission(): Boolean {
-        return ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
-            == PackageManager.PERMISSION_GRANTED
+        return ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) ==
+            PackageManager.PERMISSION_GRANTED
     }
 
     /** 未授权时先弹自定义说明框，点「授权」再调系统权限请求 */
