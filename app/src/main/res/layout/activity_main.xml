@@ -20,29 +20,56 @@
         android:background="@android:color/white"
         android:alpha="0" />
 
-    <!-- 顶部标题（极简 scrim，仿 Google 相机风格） -->
+    <!-- 左上角：数量 + 时间 标注（仿水印样式，实时预览即将烧录的内容） -->
     <LinearLayout
-        android:id="@+id/topBar"
-        android:layout_width="match_parent"
+        android:id="@+id/hudWatermark"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:background="@drawable/bg_top_scrim"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:paddingTop="14dp"
-        android:paddingBottom="20dp"
+        android:orientation="vertical"
+        android:background="@drawable/bg_watermark_hud"
+        android:paddingStart="14dp"
+        android:paddingEnd="14dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="10dp"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
         <TextView
+            android:id="@+id/tvHudQty"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/app_name"
+            android:text="数量：1"
             android:textColor="@color/white"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:alpha="0.92" />
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvHudTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="时间：--"
+            android:textColor="@color/white"
+            android:textSize="20sp"
+            android:textStyle="bold" />
     </LinearLayout>
+
+    <!-- 右上角：打开系统文件管理器（跳到下载文件夹） -->
+    <ImageButton
+        android:id="@+id/btnOpenDownloads"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:background="@drawable/bg_circle_dark"
+        android:src="@drawable/ic_folder"
+        android:tint="@color/white"
+        android:scaleType="centerInside"
+        android:padding="11dp"
+        android:contentDescription="打开下载文件夹"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="12dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <!-- 缩略图条（点开看大图） -->
     <androidx.recyclerview.widget.RecyclerView
@@ -67,7 +94,7 @@
         android:paddingBottom="22dp"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <!-- 数量步进（圆形加减 + 大号数字，拇指可达） -->
+        <!-- 数量步进（圆形图标按钮 + 大号数字，拇指可达） -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -83,12 +110,15 @@
                 android:textSize="16sp"
                 android:layout_marginEnd="14dp" />
 
-            <com.google.android.material.button.MaterialButton
+            <ImageButton
                 android:id="@+id/btnQtyMinus"
-                style="@style/CircleButton"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:text="-"
+                android:background="@drawable/bg_circle_button"
+                android:src="@drawable/ic_minus"
+                android:tint="@color/on_surface"
+                android:scaleType="centerInside"
+                android:padding="13dp"
                 android:contentDescription="减少数量" />
 
             <TextView
@@ -101,27 +131,16 @@
                 android:textStyle="bold"
                 android:textColor="@color/on_surface" />
 
-            <com.google.android.material.button.MaterialButton
+            <ImageButton
                 android:id="@+id/btnQtyPlus"
-                style="@style/CircleButton"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:text="+"
+                android:background="@drawable/bg_circle_button"
+                android:src="@drawable/ic_plus"
+                android:tint="@color/on_surface"
+                android:scaleType="centerInside"
+                android:padding="13dp"
                 android:contentDescription="增加数量" />
-
-            <View
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_weight="1" />
-
-            <TextView
-                android:id="@+id/tvCurrent"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="数量：1"
-                android:textSize="13sp"
-                android:textColor="@color/on_surface"
-                android:alpha="0.6" />
         </LinearLayout>
 
         <!-- 操作行 -->
@@ -141,16 +160,14 @@
                 android:text="分享微信"
                 android:layout_marginEnd="12dp" />
 
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
+            <!-- 圆形快门按钮（白底 + 主色圆环） -->
+            <ImageButton
                 android:id="@+id/fabShutter"
-                android:layout_width="76dp"
-                android:layout_height="76dp"
-                android:contentDescription="拍照"
-                app:srcCompat="@drawable/ic_shutter"
-                app:backgroundTint="@color/primary"
-                app:tint="@color/white"
-                app:elevation="8dp"
-                app:maxImageSize="34dp" />
+                android:layout_width="88dp"
+                android:layout_height="88dp"
+                android:background="@drawable/bg_shutter_button"
+                android:elevation="8dp"
+                android:contentDescription="拍照" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSave"

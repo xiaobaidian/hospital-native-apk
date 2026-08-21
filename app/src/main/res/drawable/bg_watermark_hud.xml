@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <!-- 近不透明深色圆角底，与水印观感一致 -->
+    <solid android:color="#F0000000" />
+    <corners android:radius="10dp" />
+</shape>

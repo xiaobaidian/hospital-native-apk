@@ -76,10 +76,11 @@ class MainActivity : AppCompatActivity() {
         binding.btnQtyMinus.setOnClickListener { if (quantity > 1) { quantity--; updateLive() } }
         binding.btnQtyPlus.setOnClickListener { if (quantity < 999) { quantity++; updateLive() } }
 
-        // 快门 / 分享 / 保存并清空缓存
+        // 快门 / 分享 / 保存并清空缓存 / 打开下载文件夹
         binding.fabShutter.setOnClickListener { takePhoto() }
         binding.btnShare.setOnClickListener { shareToWeChat() }
         binding.btnSave.setOnClickListener { saveAndClear() }
+        binding.btnOpenDownloads.setOnClickListener { openDownloads() }
 
         // 全屏预览：关闭 / 删除
         binding.btnClosePreview.setOnClickListener { binding.previewOverlay.visibility = View.GONE }
@@ -93,11 +94,12 @@ class MainActivity : AppCompatActivity() {
         ensureCameraPermission()
     }
 
-    /** 数量显示 + 底部提示（修复：大号数字与提示同步刷新；场景区分已移除） */
+    /** 同步刷新：底部大号数字 + 左上角仿水印的数量/时间标注 */
     private fun updateLive() {
         binding.tvQty.text = quantity.toString()
-        val t = SimpleDateFormat("HH:mm", Locale.CHINA).format(Date())
-        binding.tvCurrent.text = "数量：$quantity  ·  $t"
+        val now = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.CHINA).format(Date())
+        binding.tvHudQty.text = "数量：$quantity"
+        binding.tvHudTime.text = "时间：$now"
     }
 
     private fun openPreview(pos: Int) {
@@ -276,6 +278,26 @@ class MainActivity : AppCompatActivity() {
             "已保存 $ok 张到 下载/$DOWNLOAD_FOLDER，缓存已清空",
             Toast.LENGTH_LONG
         ).show()
+    }
+
+    /** 打开系统文件管理器并跳到「下载 / HospitalPhotoLog」；各厂商文件管理器兼容不一，失败则回退到系统「下载」 */
+    private fun openDownloads() {
+        val folderUri = Uri.parse(
+            "content://com.android.externalstorage.documents/document/primary:Download/HospitalPhotoLog"
+        )
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(folderUri, "vnd.android.document/directory")
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        try {
+            startActivity(intent)
+        } catch (e: Exception) {
+            try {
+                startActivity(Intent(Intent.ACTION_VIEW_DOWNLOADS))
+            } catch (e2: Exception) {
+                Toast.makeText(this, "未找到可用的文件管理器", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     /** 写一张图到「下载 / HospitalPhotoLog」：Android 10+ 走 MediaStore，老版本走文件兼容 */
