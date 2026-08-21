@@ -31,8 +31,8 @@ object Watermark {
         val w = bmp.width.toFloat()
         val h = bmp.height.toFloat()
 
-        // 字号随图片宽度，设下限保证可辨（OCR 对小字很敏感）
-        val ts = (w * 0.05f).coerceAtLeast(36f)
+        // 字号随图片宽度，设下限保证可辨（OCR 对小字很敏感）；整体略缩小
+        val ts = (w * 0.04f).coerceAtLeast(30f)
 
         val l1 = "数量：$quantity"
         val l2 = "时间：$time"
@@ -45,8 +45,8 @@ object Watermark {
             textAlign = Paint.Align.LEFT
         }
 
-        val padX = w * 0.035f
-        val padY = h * 0.022f
+        val padX = w * 0.032f
+        val padY = h * 0.02f
         val lineH = ts * 1.35f
         val textW = textPaint.measureText(l1).coerceAtLeast(textPaint.measureText(l2))
         val boxW = textW + padX * 2f

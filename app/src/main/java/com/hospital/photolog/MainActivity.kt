@@ -29,6 +29,7 @@ import java.text.SimpleDateFormat
 import java.util.ArrayList
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.Executors
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
@@ -39,7 +40,6 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private var imageCapture: ImageCapture? = null
-    private var scene = "盘库"
     private var quantity = 1
     private val photos = ArrayList<PhotoItem>()
     private lateinit var adapter: PhotoAdapter
@@ -49,6 +49,9 @@ class MainActivity : AppCompatActivity() {
     /** 写入手机「下载」目录下的独立文件夹（用户可在文件管理器/微信里直接找到） */
     private val DOWNLOAD_FOLDER = "HospitalPhotoLog"
     private var previewPos = -1
+    /** 水印烧录较重，放到后台线程执行，避免快门卡顿 */
+    private val workExecutor = Executors.newSingleThreadExecutor()
+    private val mainExecutor by lazy { ContextCompat.getMainExecutor(this) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,19 +73,14 @@ class MainActivity : AppCompatActivity() {
             LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         binding.recyclerThumbs.adapter = adapter
 
-        // 场景切换（盘库 / 调拨），强对比配色
-        binding.btnScenePan.setOnClickListener { scene = "盘库"; paintScene() }
-        binding.btnSceneDiao.setOnClickListener { scene = "调拨"; paintScene() }
-        paintScene()
-
-        // 数量步进（已在底部，拇指可达）
+        // 数量步进（底部，拇指可达）；修复：同步刷新大号数字
         binding.btnQtyMinus.setOnClickListener { if (quantity > 1) { quantity--; updateLive() } }
         binding.btnQtyPlus.setOnClickListener { if (quantity < 999) { quantity++; updateLive() } }
 
-        // 快门 / 分享 / 存到下载
+        // 快门 / 分享 / 保存并清空缓存
         binding.fabShutter.setOnClickListener { takePhoto() }
         binding.btnShare.setOnClickListener { shareToWeChat() }
-        binding.btnSave.setOnClickListener { exportToDownload() }
+        binding.btnSave.setOnClickListener { saveAndClear() }
 
         // 全屏预览：关闭 / 删除
         binding.btnClosePreview.setOnClickListener { binding.previewOverlay.visibility = View.GONE }
@@ -96,44 +94,11 @@ class MainActivity : AppCompatActivity() {
         ensureCameraPermission()
     }
 
-    /** 盘库=青绿、调拨=橙，选中实心填充+白字，未选描边+同色字 */
-    private fun paintScene() {
-        val panActive = scene == "盘库"
-        binding.btnScenePan.apply {
-            backgroundTintList = ContextCompat.getColorStateList(
-                this@MainActivity,
-                if (panActive) R.color.scene_pan else android.R.color.transparent
-            )
-            strokeWidth = if (panActive) 0 else 3
-            strokeColor = ContextCompat.getColorStateList(this@MainActivity, R.color.scene_pan)
-            setTextColor(
-                ContextCompat.getColor(
-                    this@MainActivity,
-                    if (panActive) android.R.color.white else R.color.scene_pan
-                )
-            )
-        }
-        binding.btnSceneDiao.apply {
-            backgroundTintList = ContextCompat.getColorStateList(
-                this@MainActivity,
-                if (!panActive) R.color.scene_diao else android.R.color.transparent
-            )
-            strokeWidth = if (!panActive) 0 else 3
-            strokeColor = ContextCompat.getColorStateList(this@MainActivity, R.color.scene_diao)
-            setTextColor(
-                ContextCompat.getColor(
-                    this@MainActivity,
-                    if (!panActive) android.R.color.white else R.color.scene_diao
-                )
-            )
-        }
-        updateLive()
-    }
-
-    /** 底部一行浅色提示：当前会烧进水印的内容 */
+    /** 数量显示 + 底部提示（修复：大号数字与提示同步刷新；场景区分已移除） */
     private fun updateLive() {
+        binding.tvQty.text = quantity.toString()
         val t = SimpleDateFormat("HH:mm", Locale.CHINA).format(Date())
-        binding.tvCurrent.text = "数量：$quantity  ·  $scene  ·  $t"
+        binding.tvCurrent.text = "数量：$quantity  ·  $t"
     }
 
     private fun openPreview(pos: Int) {
@@ -156,7 +121,7 @@ class MainActivity : AppCompatActivity() {
     private fun loadExistingPhotos() {
         saveDir.mkdirs()
         val files = saveDir.listFiles { f -> f.name.endsWith(".jpg") && !f.name.startsWith("raw_") }
-        files?.sortedByDescending { it.name }?.forEach { photos.add(PhotoItem(it, "", "盘库", 1, it.name)) }
+        files?.sortedByDescending { it.name }?.forEach { photos.add(PhotoItem(it, "", 1, it.name)) }
         adapter.notifyDataSetChanged()
     }
 
@@ -215,25 +180,27 @@ class MainActivity : AppCompatActivity() {
         saveDir.mkdirs()
         val raw = File(saveDir, "raw_${System.currentTimeMillis()}.jpg")
         val opts = ImageCapture.OutputFileOptions.Builder(raw).build()
-        imageCapture.takePicture(opts, ContextCompat.getMainExecutor(this),
+        // 回调跑在主线程：立刻给快门反馈，重的水印烧录丢到后台，避免卡顿
+        imageCapture.takePicture(opts, mainExecutor,
             object : ImageCapture.OnImageSavedCallback {
                 override fun onError(exc: ImageCaptureException) {
                     Toast.makeText(this@MainActivity, "拍照失败：${exc.message}", Toast.LENGTH_SHORT).show()
                 }
 
                 override fun onImageSaved(result: ImageCapture.OutputFileResults) {
+                    onCapturedFeedback() // 白闪 + 振动，先响应用户
+                    val q = quantity
                     val time = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.CHINA).format(Date())
-                    val name = makeDownloadName(scene, quantity)
-                    val wm = Watermark.burn(raw, quantity, time, name)
-                    raw.delete()
-                    val item = PhotoItem(wm, time, scene, quantity, name)
-                    photos.add(0, item)
-                    adapter.notifyItemInserted(0)
-                    binding.recyclerThumbs.scrollToPosition(0)
-                    onCapturedFeedback()
-                    // 自动存一份到手机「下载 / HospitalPhotoLog」，无需手动打包
-                    if (!saveToDownload(wm, name)) {
-                        Toast.makeText(this@MainActivity, "自动存入下载失败，可点「存到下载」重试", Toast.LENGTH_SHORT).show()
+                    val name = makeDownloadName(q)
+                    workExecutor.execute {
+                        val wm = Watermark.burn(raw, q, time, name)
+                        raw.delete()
+                        val item = PhotoItem(wm, time, q, name)
+                        runOnUiThread {
+                            photos.add(0, item)
+                            adapter.notifyItemInserted(0)
+                            binding.recyclerThumbs.scrollToPosition(0)
+                        }
                     }
                 }
             })
@@ -290,20 +257,24 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /** 把当前所有照片导出到「下载 / HospitalPhotoLog」（去重：已存在则跳过） */
-    private fun exportToDownload() {
+    /** 点「保存」：全部导出到「下载 / HospitalPhotoLog」，然后清空工作缓存 */
+    private fun saveAndClear() {
         if (photos.isEmpty()) {
             Toast.makeText(this, "还没有照片", Toast.LENGTH_SHORT).show()
             return
         }
         var ok = 0
         photos.forEach { item ->
-            val name = item.downloadName ?: makeDownloadName(item.scene, item.quantity)
+            val name = item.downloadName ?: makeDownloadName(item.quantity)
             if (saveToDownload(item.file, name)) ok++
         }
+        // 清空当前缓存的照片（工作副本删除 + 列表清空）
+        photos.forEach { it.file.delete() }
+        photos.clear()
+        adapter.notifyDataSetChanged()
         Toast.makeText(
             this,
-            "已保存 $ok 张到 下载/$DOWNLOAD_FOLDER",
+            "已保存 $ok 张到 下载/$DOWNLOAD_FOLDER，缓存已清空",
             Toast.LENGTH_LONG
         ).show()
     }
@@ -379,12 +350,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /** 下载目录里的文件名：场景_时间_数量.jpg（唯一，便于去重与人工辨认） */
-    private fun makeDownloadName(scene: String, quantity: Int): String {
+    /** 下载目录里的文件名：时间_序号_数量.jpg（唯一，便于去重与人工辨认） */
+    private fun makeDownloadName(quantity: Int): String {
         val ts = System.currentTimeMillis()
         val tf = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.CHINA).format(Date(ts))
         val uniq = ts % 1000
-        return "${scene}_${tf}${String.format("%03d", uniq)}_数量${quantity}.jpg"
+        return "${tf}_${String.format("%03d", uniq)}_数量${quantity}.jpg"
     }
 
     /** 音量键当快门（现场戴手套/拿货时比戳屏幕顺手） */

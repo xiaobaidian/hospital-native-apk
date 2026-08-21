@@ -20,109 +20,94 @@
         android:background="@android:color/white"
         android:alpha="0" />
 
-    <!-- 顶部：盘库 / 调拨（强对比配色） -->
+    <!-- 顶部标题（极简 scrim，仿 Google 相机风格） -->
     <LinearLayout
         android:id="@+id/topBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:background="@color/topbar_bg"
+        android:background="@drawable/bg_top_scrim"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
-        android:paddingTop="10dp"
-        android:paddingBottom="10dp"
+        android:paddingTop="14dp"
+        android:paddingBottom="20dp"
         app:layout_constraintTop_toTopOf="parent">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="场景"
+            android:text="@string/app_name"
             android:textColor="@color/white"
-            android:textSize="14sp"
-            android:alpha="0.7"
-            android:layout_marginEnd="12dp" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnScenePan"
-            style="@style/SceneButton"
-            android:layout_width="0dp"
-            android:layout_height="42dp"
-            android:layout_weight="1"
-            android:text="盘库" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnSceneDiao"
-            style="@style/SceneButton"
-            android:layout_width="0dp"
-            android:layout_height="42dp"
-            android:layout_weight="1"
-            android:layout_marginStart="10dp"
-            android:text="调拨" />
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:alpha="0.92" />
     </LinearLayout>
 
     <!-- 缩略图条（点开看大图） -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerThumbs"
         android:layout_width="match_parent"
-        android:layout_height="108dp"
+        android:layout_height="96dp"
         android:background="@color/strip_bg"
         android:padding="8dp"
         android:clipToPadding="false"
         app:layout_constraintBottom_toTopOf="@id/bottomPanel" />
 
-    <!-- 底部控制面板（圆角悬浮，拇指可达） -->
+    <!-- 底部控制面板（圆角悬浮 sheet，Material 3 风格） -->
     <LinearLayout
         android:id="@+id/bottomPanel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:background="@drawable/bg_bottom_panel"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:paddingTop="14dp"
-        android:paddingBottom="18dp"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingTop="18dp"
+        android:paddingBottom="22dp"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <!-- 数量（移到底部，单手可控） -->
+        <!-- 数量步进（圆形加减 + 大号数字，拇指可达） -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginBottom="12dp">
+            android:layout_marginBottom="14dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="数量"
-                android:textColor="@color/white"
+                android:textColor="@color/on_surface"
                 android:textSize="16sp"
-                android:layout_marginEnd="12dp" />
+                android:layout_marginEnd="14dp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnQtyMinus"
-                style="@style/QtyButton"
+                style="@style/CircleButton"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:text="-" />
+                android:text="-"
+                android:contentDescription="减少数量" />
 
             <TextView
                 android:id="@+id/tvQty"
-                android:layout_width="56dp"
+                android:layout_width="64dp"
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:text="1"
-                android:textSize="22sp"
+                android:textSize="24sp"
                 android:textStyle="bold"
-                android:textColor="@color/white" />
+                android:textColor="@color/on_surface" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnQtyPlus"
-                style="@style/QtyButton"
+                style="@style/CircleButton"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:text="+" />
+                android:text="+"
+                android:contentDescription="增加数量" />
 
             <View
                 android:layout_width="0dp"
@@ -135,8 +120,8 @@
                 android:layout_height="wrap_content"
                 android:text="数量：1"
                 android:textSize="13sp"
-                android:textColor="@color/white"
-                android:alpha="0.65" />
+                android:textColor="@color/on_surface"
+                android:alpha="0.6" />
         </LinearLayout>
 
         <!-- 操作行 -->
@@ -154,17 +139,18 @@
                 android:layout_height="52dp"
                 android:layout_weight="1"
                 android:text="分享微信"
-                android:layout_marginEnd="10dp" />
+                android:layout_marginEnd="12dp" />
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/fabShutter"
-                android:layout_width="72dp"
-                android:layout_height="72dp"
+                android:layout_width="76dp"
+                android:layout_height="76dp"
                 android:contentDescription="拍照"
                 app:srcCompat="@drawable/ic_shutter"
                 app:backgroundTint="@color/primary"
                 app:tint="@color/white"
-                app:elevation="6dp" />
+                app:elevation="8dp"
+                app:maxImageSize="34dp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSave"
@@ -172,8 +158,8 @@
                 android:layout_width="0dp"
                 android:layout_height="52dp"
                 android:layout_weight="1"
-                android:text="存到下载"
-                android:layout_marginStart="10dp" />
+                android:text="保存"
+                android:layout_marginStart="12dp" />
         </LinearLayout>
     </LinearLayout>
 
