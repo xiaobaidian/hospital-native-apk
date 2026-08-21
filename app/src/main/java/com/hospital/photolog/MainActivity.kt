@@ -16,6 +16,7 @@ import android.provider.Settings
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.KeyEvent
+import android.view.MotionEvent
 import android.view.View
 import android.annotation.SuppressLint
 import android.widget.Toast
@@ -99,6 +100,15 @@ class MainActivity : AppCompatActivity() {
         binding.etQty.setOnFocusChangeListener { _, hasFocus -> if (!hasFocus) setQuantity(quantity) }
 
         // 快门 / 分享 / 保存并清空缓存 / 打开下载文件夹
+        binding.fabShutter.setOnTouchListener { v, event ->
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN ->
+                    v.animate().scaleX(0.88f).scaleY(0.88f).setDuration(90).start()
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL ->
+                    v.animate().scaleX(1f).scaleY(1f).setDuration(140).start()
+            }
+            false
+        }
         binding.fabShutter.setOnClickListener { takePhoto() }
         binding.btnShare.setOnClickListener { shareToWeChat() }
         binding.btnSave.setOnClickListener { saveAndClear() }

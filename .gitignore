@@ -1,7 +1,8 @@
 *.iml
 .gradle/
 local.properties
-keystore/
+keystore/*
+!keystore/debug.p12
 *.keystore
 build/
 app/build/
