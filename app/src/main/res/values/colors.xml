@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="primary">#00897B</color>
-    <color name="primary_dark">#00695C</color>
+    <color name="primary">#1E88E5</color>
+    <color name="primary_dark">#1565C0</color>
     <color name="white">#FFFFFFFF</color>
     <color name="black">#FF000000</color>
     <color name="bg">#FF101418</color>
-    <color name="ic_bg">#00897B</color>
+    <color name="ic_bg">#1E88E5</color>
+    <color name="scene_pan">#00897B</color>
+    <color name="scene_diao">#FB8C00</color>
+    <color name="topbar_bg">#59000000</color>
+    <color name="strip_bg">#B3101418</color>
+    <color name="panel_bg">#E61A1F29</color>
+    <color name="danger">#E53935</color>
 </resources>

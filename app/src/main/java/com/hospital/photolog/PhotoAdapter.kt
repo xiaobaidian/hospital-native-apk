@@ -9,6 +9,7 @@ import java.io.File
 
 class PhotoAdapter(
     private val items: ArrayList<PhotoItem>,
+    private val onOpen: (Int) -> Unit,
     private val onRemove: (Int) -> Unit
 ) : RecyclerView.Adapter<PhotoAdapter.VH>() {
 
@@ -22,7 +23,14 @@ class PhotoAdapter(
     override fun onBindViewHolder(holder: VH, position: Int) {
         val item = items[position]
         holder.binding.img.setImageBitmap(decodeSampled(item.file.absolutePath, 200))
-        holder.binding.btnRemove.setOnClickListener { onRemove(position) }
+        holder.binding.img.setOnClickListener {
+            val p = holder.bindingAdapterPosition
+            if (p != RecyclerView.NO_POSITION) onOpen(p)
+        }
+        holder.binding.btnRemove.setOnClickListener {
+            val p = holder.bindingAdapterPosition
+            if (p != RecyclerView.NO_POSITION) onRemove(p)
+        }
     }
 
     override fun getItemCount(): Int = items.size
