@@ -12,16 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- 非默认数量时的取景框描边预警（数量≠1 才显示）：琥珀=未锁定拍后归位 / 绿=已锁定持续保持 -->
-    <View
-        android:id="@+id/viewfinderBorder"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_margin="10dp"
-        android:background="@drawable/border_warn"
-        android:clickable="false"
-        android:focusable="false"
-        android:visibility="gone" />
+    <!-- 取景框描边已移除（数量≠1 的提醒改为底部角标，用户要求去掉琥珀色边框） -->
 
     <!-- 拍照白闪反馈 -->
     <View
@@ -66,7 +57,7 @@
             android:textStyle="bold" />
     </LinearLayout>
 
-    <!-- 顶部居中：数量≠1 时的常驻角标（琥珀=拍后归位 / 绿=已锁定） -->
+    <!-- 底部拍照卡片上方：数量≠1 时的常驻角标（琥珀=拍后归位 / 绿=已锁定），不遮挡取景与缩略图 -->
     <TextView
         android:id="@+id/tvQtyBadge"
         android:layout_width="wrap_content"
@@ -81,8 +72,8 @@
         android:visibility="gone"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginTop="10dp" />
+        app:layout_constraintBottom_toTopOf="@id/bottomPanel"
+        android:layout_marginBottom="116dp" />
 
     <!-- 右上角：打开系统文件管理器（跳到下载文件夹） -->
     <ImageButton

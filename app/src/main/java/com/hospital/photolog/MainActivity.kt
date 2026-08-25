@@ -159,10 +159,6 @@ class MainActivity : AppCompatActivity() {
         val nonDefault = quantity != 1
         if (nonDefault) {
             val locked = lockQuantity
-            binding.viewfinderBorder.visibility = View.VISIBLE
-            binding.viewfinderBorder.setBackgroundResource(
-                if (locked) R.drawable.border_lock else R.drawable.border_warn
-            )
             binding.tvQtyBadge.visibility = View.VISIBLE
             binding.tvQtyBadge.text =
                 if (locked) "数量=$quantity · 已锁定" else "数量=$quantity · 拍后归位"
@@ -170,7 +166,6 @@ class MainActivity : AppCompatActivity() {
                 if (locked) R.drawable.bg_badge_lock else R.drawable.bg_badge_warn
             )
         } else {
-            binding.viewfinderBorder.visibility = View.GONE
             binding.tvQtyBadge.visibility = View.GONE
         }
     }
