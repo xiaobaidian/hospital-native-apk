@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.graphics.PorterDuff
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -47,6 +48,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private var imageCapture: ImageCapture? = null
     private var quantity = 1
+    /** 数量锁定：开启后数量跨张保持（连续拍同数量）；默认关，拍完自动归位 1 */
+    private var lockQuantity = false
     private val photos = ArrayList<PhotoItem>()
     private lateinit var adapter: PhotoAdapter
     private val saveDir by lazy {
@@ -99,6 +102,18 @@ class MainActivity : AppCompatActivity() {
         })
         binding.etQty.setOnFocusChangeListener { _, hasFocus -> if (!hasFocus) setQuantity(quantity) }
 
+        // 数量锁定开关：开启后数量跨张保持（连续拍同数量）；关闭则拍完自动归位 1
+        binding.btnLockQty.setOnClickListener {
+            lockQuantity = !lockQuantity
+            updateLockUi()
+            Toast.makeText(
+                this,
+                if (lockQuantity) "数量已锁定，将持续保持" else "已解锁，拍照后自动归位",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+        updateLockUi()
+
         // 快门 / 分享 / 保存并清空缓存 / 打开下载文件夹
         binding.fabShutter.setOnTouchListener { v, event ->
             when (event.actionMasked) {
@@ -136,11 +151,45 @@ class MainActivity : AppCompatActivity() {
         updateHud()
     }
 
-    /** 左上角仿水印的数量/时间标注（与烧录内容一致） */
+    /** 左上角仿水印的数量/时间标注（与烧录内容一致）；数量≠1 时联动取景框描边与角标 */
     private fun updateHud() {
         val now = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.CHINA).format(Date())
         binding.tvHudQty.text = "数量：$quantity"
         binding.tvHudTime.text = "时间：$now"
+        val nonDefault = quantity != 1
+        if (nonDefault) {
+            val locked = lockQuantity
+            binding.viewfinderBorder.visibility = View.VISIBLE
+            binding.viewfinderBorder.setBackgroundResource(
+                if (locked) R.drawable.border_lock else R.drawable.border_warn
+            )
+            binding.tvQtyBadge.visibility = View.VISIBLE
+            binding.tvQtyBadge.text =
+                if (locked) "数量=$quantity · 已锁定" else "数量=$quantity · 拍后归位"
+            binding.tvQtyBadge.setBackgroundResource(
+                if (locked) R.drawable.bg_badge_lock else R.drawable.bg_badge_warn
+            )
+        } else {
+            binding.viewfinderBorder.visibility = View.GONE
+            binding.tvQtyBadge.visibility = View.GONE
+        }
+    }
+
+    /** 锁定按钮外观：开启=主色填充+亮色图标；关闭=默认圆底+灰图标 */
+    private fun updateLockUi() {
+        if (lockQuantity) {
+            binding.btnLockQty.setBackgroundResource(R.drawable.bg_circle_button_active)
+            binding.btnLockQty.setColorFilter(
+                ContextCompat.getColor(this, R.color.on_primary), PorterDuff.Mode.SRC_IN
+            )
+            binding.btnLockQty.contentDescription = "数量已锁定，点此解锁"
+        } else {
+            binding.btnLockQty.setBackgroundResource(R.drawable.bg_circle_button)
+            binding.btnLockQty.setColorFilter(
+                ContextCompat.getColor(this, R.color.on_surface_variant), PorterDuff.Mode.SRC_IN
+            )
+            binding.btnLockQty.contentDescription = "锁定数量"
+        }
     }
 
     private fun openPreview(pos: Int) {
@@ -294,6 +343,7 @@ class MainActivity : AppCompatActivity() {
                 override fun onImageSaved(result: ImageCapture.OutputFileResults) {
                     onCapturedFeedback() // 白闪 + 振动，先响应用户
                     val q = quantity
+                    val locked = lockQuantity
                     val time = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.CHINA).format(Date())
                     val name = makeDownloadName(q)
                     workExecutor.execute {
@@ -305,6 +355,8 @@ class MainActivity : AppCompatActivity() {
                             adapter.notifyItemInserted(0)
                             binding.recyclerThumbs.scrollToPosition(0)
                             updateThumbsVisibility()
+                            // 防错核心：未锁定则拍照后自动归位为 1，避免下一张忘记改回
+                            if (!locked && q != 1) setQuantity(1)
                         }
                     }
                 }

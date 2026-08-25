@@ -12,6 +12,17 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <!-- 非默认数量时的取景框描边预警（数量≠1 才显示）：琥珀=未锁定拍后归位 / 绿=已锁定持续保持 -->
+    <View
+        android:id="@+id/viewfinderBorder"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="10dp"
+        android:background="@drawable/border_warn"
+        android:clickable="false"
+        android:focusable="false"
+        android:visibility="gone" />
+
     <!-- 拍照白闪反馈 -->
     <View
         android:id="@+id/flash"
@@ -54,6 +65,24 @@
             android:textSize="20sp"
             android:textStyle="bold" />
     </LinearLayout>
+
+    <!-- 顶部居中：数量≠1 时的常驻角标（琥珀=拍后归位 / 绿=已锁定） -->
+    <TextView
+        android:id="@+id/tvQtyBadge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingStart="14dp"
+        android:paddingEnd="14dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        android:textColor="@color/black"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="10dp" />
 
     <!-- 右上角：打开系统文件管理器（跳到下载文件夹） -->
     <ImageButton
@@ -100,7 +129,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- 步进行：- 输入框 + -->
+            <!-- 步进行：- 输入框 +  + 锁定 -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -154,6 +183,19 @@
                     android:scaleType="centerInside"
                     android:padding="13dp"
                     android:contentDescription="增加数量" />
+
+                <!-- 数量锁定：开启后跨张保持（连续拍同数量）；关闭则拍完自动归位 1 -->
+                <ImageButton
+                    android:id="@+id/btnLockQty"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="@drawable/bg_circle_button"
+                    android:src="@drawable/ic_lock"
+                    android:tint="@color/on_surface_variant"
+                    android:scaleType="centerInside"
+                    android:padding="13dp"
+                    android:layout_marginStart="12dp"
+                    android:contentDescription="锁定数量" />
             </LinearLayout>
 
             <!-- 预设值（半透明胶囊，单行小字） -->
