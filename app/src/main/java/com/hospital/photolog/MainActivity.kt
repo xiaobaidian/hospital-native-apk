@@ -107,11 +107,6 @@ class MainActivity : AppCompatActivity() {
             lockQuantity = !lockQuantity
             updateLockUi()
             updateHud() // 锁状态变化须同步刷新中间角标（否则解锁后仍显示「已锁定」）
-            Toast.makeText(
-                this,
-                if (lockQuantity) "数量已锁定，将持续保持" else "已解锁，拍照后自动归位",
-                Toast.LENGTH_SHORT
-            ).show()
         }
         updateLockUi()
 
@@ -145,6 +140,8 @@ class MainActivity : AppCompatActivity() {
     /** 设置数量：钳制到 1..999，同步输入框与左上角仿水印标注 */
     private fun setQuantity(v: Int) {
         quantity = v.coerceIn(1, 999)
+        // 数量回到默认 1 时自动解除锁定：锁定 1 无意义，且锁按钮在数量=1 时隐藏，不清锁会导致无法解锁
+        if (quantity == 1) lockQuantity = false
         if (binding.etQty.text.toString().toIntOrNull() != quantity) {
             binding.etQty.setText(quantity.toString())
             binding.etQty.setSelection(binding.etQty.text.length)
@@ -173,6 +170,17 @@ class MainActivity : AppCompatActivity() {
             }
             // 未锁定且数量=1：无需提醒，隐藏
             else -> binding.tvQtyBadge.visibility = View.GONE
+        }
+        updateLockVisibility() // 同步锁按钮显隐（数量=1 时隐藏小锁）
+    }
+
+    /** 锁按钮仅在数量≠1 时显示：数量为默认 1 时锁定无意义，隐藏以免干扰拍照；重新显示时按状态刷新外观 */
+    private fun updateLockVisibility() {
+        if (quantity == 1) {
+            binding.btnLockQty.visibility = View.GONE
+        } else {
+            binding.btnLockQty.visibility = View.VISIBLE
+            updateLockUi()
         }
     }
 
