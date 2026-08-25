@@ -106,6 +106,7 @@ class MainActivity : AppCompatActivity() {
         binding.btnLockQty.setOnClickListener {
             lockQuantity = !lockQuantity
             updateLockUi()
+            updateHud() // 锁状态变化须同步刷新中间角标（否则解锁后仍显示「已锁定」）
             Toast.makeText(
                 this,
                 if (lockQuantity) "数量已锁定，将持续保持" else "已解锁，拍照后自动归位",
@@ -151,22 +152,27 @@ class MainActivity : AppCompatActivity() {
         updateHud()
     }
 
-    /** 左上角仿水印的数量/时间标注（与烧录内容一致）；数量≠1 时联动取景框描边与角标 */
+    /** 左上角仿水印的数量/时间标注（与烧录内容一致）；数量≠1 时显示「拍后归位」，锁定时常驻显示「已锁定」 */
     private fun updateHud() {
         val now = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.CHINA).format(Date())
         binding.tvHudQty.text = "数量：$quantity"
         binding.tvHudTime.text = "时间：$now"
         val nonDefault = quantity != 1
-        if (nonDefault) {
-            val locked = lockQuantity
-            binding.tvQtyBadge.visibility = View.VISIBLE
-            binding.tvQtyBadge.text =
-                if (locked) "数量=$quantity · 已锁定" else "数量=$quantity · 拍后归位"
-            binding.tvQtyBadge.setBackgroundResource(
-                if (locked) R.drawable.bg_badge_lock else R.drawable.bg_badge_warn
-            )
-        } else {
-            binding.tvQtyBadge.visibility = View.GONE
+        when {
+            // 锁定开启：无论数量是否为 1 都显示绿色「已锁定」，给锁定明确的中部反馈
+            lockQuantity -> {
+                binding.tvQtyBadge.visibility = View.VISIBLE
+                binding.tvQtyBadge.text = "数量=$quantity · 已锁定"
+                binding.tvQtyBadge.setBackgroundResource(R.drawable.bg_badge_lock)
+            }
+            // 未锁定但数量≠1：琥珀色「拍后归位」提醒别忘改回
+            nonDefault -> {
+                binding.tvQtyBadge.visibility = View.VISIBLE
+                binding.tvQtyBadge.text = "数量=$quantity · 拍后归位"
+                binding.tvQtyBadge.setBackgroundResource(R.drawable.bg_badge_warn)
+            }
+            // 未锁定且数量=1：无需提醒，隐藏
+            else -> binding.tvQtyBadge.visibility = View.GONE
         }
     }
 
