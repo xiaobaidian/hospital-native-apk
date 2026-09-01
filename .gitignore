@@ -10,3 +10,8 @@ app/release/
 app-debug.apk
 .DS_Store
 Thumbs.db
+
+# 自动化推送辅助脚本/缓存（非工程源码，不入库）
+__pycache__/
+_push_payload.json
+push_commit.py
